@@ -1,2 +1,2 @@
-# Golang-Ghidra-Script-Runner
+# Ghidra-Script-Runner
 A Golang package for running Ghidra Scripts
