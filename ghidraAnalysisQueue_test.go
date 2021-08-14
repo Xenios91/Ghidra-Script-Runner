@@ -51,14 +51,15 @@ func TestUpdateTaskStatus(t *testing.T) {
 	script := "testScript"
 
 	ghidraScriptService.AddToQueue(&binName, &script)
-	ghidraScriptService.UpdateTaskStatus(&binName, runningStatus)
-	if taskStatus := ghidraScriptService.GetStatus(&binName); *taskStatus != runningStatus {
+	ghidraScriptService.UpdateTaskStatus(&binName, completeStatus)
+	if taskStatus := ghidraScriptService.GetStatus(&binName); *taskStatus != completeStatus {
 		t.FailNow()
 	}
 }
 
 func TestGetAllStatus(t *testing.T) {
-	ghidraScriptService := NewGhidraScriptService(config)
+	mutex := sync.Mutex{}
+	ghidraScriptService := &GhidraScriptService{queue: list.New(), syncCondi: sync.NewCond(&mutex)}
 	binName := "testBinName"
 	script := "testScript"
 	ghidraScriptService.AddToQueue(&binName, &script)
@@ -68,9 +69,19 @@ func TestGetAllStatus(t *testing.T) {
 	ghidraScriptService.AddToQueue(&binName2, &script2)
 
 	ghidraScriptService.UpdateTaskStatus(&binName, runningStatus)
+	ghidraScriptService.UpdateTaskStatus(&binName2, runningStatus)
 	if tasksCount := len(ghidraScriptService.GetAllStatus()); tasksCount != 2 {
 		t.FailNow()
 	}
+
+	statusMap := ghidraScriptService.GetAllStatus()
+
+	for _, value := range statusMap {
+		if *value != runningStatus {
+			t.FailNow()
+		}
+	}
+
 }
 
 func TestWaitForQueuedItems(t *testing.T) {
