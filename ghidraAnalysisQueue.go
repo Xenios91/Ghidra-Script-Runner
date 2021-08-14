@@ -35,6 +35,9 @@ func (ghidraScriptService *GhidraScriptService) waitForQueuedItems() {
 
 //NewGhidraScriptService Used to create a new analysis queue. Required to start polling,
 func NewGhidraScriptService(config *Configuration) *GhidraScriptService {
+	if config == nil {
+		panic("Ghidra Config was nil!")
+	}
 	mutex := sync.Mutex{}
 	newGhidraScriptService := &GhidraScriptService{list.New(), sync.NewCond(&mutex), config}
 	go newGhidraScriptService.waitForQueuedItems()
