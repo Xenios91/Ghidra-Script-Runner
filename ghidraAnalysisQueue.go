@@ -19,8 +19,9 @@ func (ghidraScriptService *GhidraScriptService) waitForQueuedItems() {
 		syncCondi.L.Lock()
 		if linkedListElement == nil {
 			syncCondi.Wait()
+			linkedListElement = ghidraScriptService.queue.Front()
 		} else {
-			task := linkedListElement.Value.(ghidraQueueTask)
+			task := linkedListElement.Value.(*ghidraQueueTask)
 			ghidraScriptService.UpdateTaskStatus(task.fileName, runningStatus)
 			success := task.runScript(ghidraScriptService.ghidraConfig)
 			if success {
@@ -30,6 +31,7 @@ func (ghidraScriptService *GhidraScriptService) waitForQueuedItems() {
 			}
 		}
 		linkedListElement = linkedListElement.Next()
+		syncCondi.L.Unlock()
 	}
 }
 
@@ -48,6 +50,7 @@ func NewGhidraScriptService(config *Configuration) *GhidraScriptService {
 func (ghidraScriptService *GhidraScriptService) AddToQueue(binaryName, script *string) {
 	queueValue := newGhidraQueueItem(binaryName, script)
 	ghidraScriptService.queue.PushBack(queueValue)
+	ghidraScriptService.syncCondi.Signal()
 }
 
 func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) *list.Element {
