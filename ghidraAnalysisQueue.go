@@ -54,7 +54,7 @@ func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) 
 	linkedListElement := ghidraScriptService.queue.Front()
 	for {
 		if linkedListElement != nil {
-			task := linkedListElement.Value.(ghidraQueueTask)
+			task := linkedListElement.Value.(*ghidraQueueTask)
 			if task.fileName == binaryName {
 				return linkedListElement
 			} else {
@@ -78,7 +78,7 @@ func (ghidraScriptService *GhidraScriptService) RemoveFromQueue(binaryName *stri
 //UpdateTaskStatus updates the status of a binary currently in the queue.
 func (ghidraScriptService *GhidraScriptService) UpdateTaskStatus(binaryName *string, statusUpdate queueStatus) {
 	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
-		task := linkedListElement.Value.(ghidraQueueTask)
+		task := linkedListElement.Value.(*ghidraQueueTask)
 		task.status = statusUpdate
 	}
 }
@@ -86,7 +86,7 @@ func (ghidraScriptService *GhidraScriptService) UpdateTaskStatus(binaryName *str
 //GetStatus Returns the current status of a binary being processed by Ghidra.
 func (ghidraScriptService *GhidraScriptService) GetStatus(binaryName *string) *queueStatus {
 	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
-		status := linkedListElement.Value.(ghidraQueueTask).status
+		status := linkedListElement.Value.(*ghidraQueueTask).status
 		return &status
 	}
 	return nil
@@ -99,7 +99,7 @@ func (ghidraScriptService *GhidraScriptService) GetAllStatus() map[string]*queue
 
 	for {
 		if linkedListElement != nil {
-			task := linkedListElement.Value.(ghidraQueueTask)
+			task := linkedListElement.Value.(*ghidraQueueTask)
 			statusMap[*task.fileName] = &task.status
 			linkedListElement = linkedListElement.Next()
 		} else {
