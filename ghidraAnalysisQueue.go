@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+//GhidraScriptService The service utilized to run ghidra scripts.
 type GhidraScriptService struct {
 	queue        *list.List
 	syncCondi    *sync.Cond
@@ -60,9 +61,9 @@ func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) 
 			task := linkedListElement.Value.(*ghidraQueueTask)
 			if task.fileName == binaryName {
 				return linkedListElement
-			} else {
-				linkedListElement = linkedListElement.Next()
 			}
+
+			linkedListElement = linkedListElement.Next()
 		} else {
 			break
 		}
