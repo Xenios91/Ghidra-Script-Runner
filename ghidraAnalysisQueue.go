@@ -1,74 +1,107 @@
 package ghidraScriptRunner
 
-type GhidraAnalysisQueue struct {
-	queue        map[string]*ghidraQueueTask
-	wait         chan bool
+import (
+	"container/list"
+	"sync"
+)
+
+type GhidraScriptService struct {
+	queue        *list.List
+	syncCondi    *sync.Cond
 	ghidraConfig *Configuration
 }
 
-func (ghidraQueue *GhidraAnalysisQueue) waitForQueuedItems() {
+func (ghidraScriptService *GhidraScriptService) waitForQueuedItems() {
+	linkedListElement := ghidraScriptService.queue.Front()
+	syncCondi := ghidraScriptService.syncCondi
+
 	for {
-		if len(ghidraQueue.queue) == 0 {
-			<-ghidraQueue.wait
+		syncCondi.L.Lock()
+		if linkedListElement == nil {
+			syncCondi.Wait()
 		} else {
-			for key, value := range ghidraQueue.queue {
-				ghidraQueue.UpdateTaskStatus(&key, runningStatus)
-				success := value.runScript(ghidraQueue.ghidraConfig)
-				if success {
-					ghidraQueue.UpdateTaskStatus(&key, completeStatus)
-				} else {
-					ghidraQueue.UpdateTaskStatus(&key, errorStatus)
-				}
+			task := linkedListElement.Value.(ghidraQueueTask)
+			ghidraScriptService.UpdateTaskStatus(task.fileName, runningStatus)
+			success := task.runScript(ghidraScriptService.ghidraConfig)
+			if success {
+				ghidraScriptService.UpdateTaskStatus(task.fileName, completeStatus)
+			} else {
+				ghidraScriptService.UpdateTaskStatus(task.fileName, errorStatus)
 			}
 		}
-
+		linkedListElement = linkedListElement.Next()
 	}
 }
 
-//NewGhidraAnalysisQueue Used to create a new analysis queue. Required to start polling,
-func NewGhidraAnalysisQueue(config *Configuration) *GhidraAnalysisQueue {
-	newAnalysisQueue := &GhidraAnalysisQueue{make(map[string]*ghidraQueueTask), make(chan bool), config}
-	go newAnalysisQueue.waitForQueuedItems()
-	return newAnalysisQueue
+//NewGhidraScriptService Used to create a new analysis queue. Required to start polling,
+func NewGhidraScriptService(config *Configuration) *GhidraScriptService {
+	mutex := sync.Mutex{}
+	newGhidraScriptService := &GhidraScriptService{list.New(), sync.NewCond(&mutex), config}
+	go newGhidraScriptService.waitForQueuedItems()
+	return newGhidraScriptService
 }
 
 //AddToQueue Adds a new analysis task to the queue
-func (ghidraQueue *GhidraAnalysisQueue) AddToQueue(binaryName, script *string) {
+func (ghidraScriptService *GhidraScriptService) AddToQueue(binaryName, script *string) {
 	queueValue := newGhidraQueueItem(binaryName, script)
-	ghidraQueue.queue[*binaryName] = queueValue
-	ghidraQueue.wait <- true
+	ghidraScriptService.queue.PushBack(queueValue)
+}
+
+func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) *list.Element {
+	linkedListElement := ghidraScriptService.queue.Front()
+	for {
+		if linkedListElement != nil {
+			task := linkedListElement.Value.(ghidraQueueTask)
+			if task.fileName == binaryName {
+				return linkedListElement
+			} else {
+				linkedListElement = linkedListElement.Next()
+			}
+		} else {
+			break
+		}
+	}
+	return nil
 }
 
 //RemoveFromQueue removes a binary name from the queue of binaries being processed by ghidra.
-func (ghidraQueue *GhidraAnalysisQueue) RemoveFromQueue(binaryName *string) {
-	delete((*ghidraQueue).queue, *binaryName)
+func (ghidraScriptService *GhidraScriptService) RemoveFromQueue(binaryName *string) {
+	linkedListElement := ghidraScriptService.findElement(binaryName)
+	if linkedListElement != nil {
+		ghidraScriptService.queue.Remove(linkedListElement)
+	}
 }
 
 //UpdateTaskStatus updates the status of a binary currently in the queue.
-func (ghidraQueue *GhidraAnalysisQueue) UpdateTaskStatus(binaryName *string, statusUpdate queueStatus) {
-	queueValue := ghidraQueue.queue[*binaryName]
-	if queueValue != nil {
-		ghidraQueue.queue[*binaryName].status = statusUpdate
+func (ghidraScriptService *GhidraScriptService) UpdateTaskStatus(binaryName *string, statusUpdate queueStatus) {
+	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
+		task := linkedListElement.Value.(ghidraQueueTask)
+		task.status = statusUpdate
 	}
 }
 
 //GetStatus Returns the current status of a binary being processed by Ghidra.
-func (ghidraQueue *GhidraAnalysisQueue) GetStatus(binaryName *string) *queueStatus {
-	var status queueStatus
-	queueValue := ghidraQueue.queue[*binaryName]
-	if queueValue != nil {
-		status = (*queueValue).status
+func (ghidraScriptService *GhidraScriptService) GetStatus(binaryName *string) *queueStatus {
+	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
+		status := linkedListElement.Value.(ghidraQueueTask).status
+		return &status
 	}
-	return &status
+	return nil
 }
 
 //GetAllStatus Returns a map with the status of all binaries being processed by Ghidra.
-func (ghidraQueue *GhidraAnalysisQueue) GetAllStatus() map[string]*queueStatus {
-	statusMap := make(map[string]*queueStatus, len(ghidraQueue.queue))
+func (ghidraScriptService *GhidraScriptService) GetAllStatus() map[string]*queueStatus {
+	statusMap := make(map[string]*queueStatus, ghidraScriptService.queue.Len())
+	linkedListElement := ghidraScriptService.queue.Front()
 
-	for key, value := range ghidraQueue.queue {
-		statusMap[key] = &value.status
+	for {
+		if linkedListElement != nil {
+			task := linkedListElement.Value.(ghidraQueueTask)
+			statusMap[*task.fileName] = &task.status
+			linkedListElement = linkedListElement.Next()
+		} else {
+			break
+		}
 	}
-
 	return statusMap
 }
