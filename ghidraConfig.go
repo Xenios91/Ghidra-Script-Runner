@@ -2,6 +2,7 @@ package ghidraScriptRunner
 
 import "errors"
 
+//Configuration The ghidra configuration to be utilized for running scripts
 type Configuration struct {
 	ghidraHeadless        *string
 	ghidraProjectLocation *string
@@ -9,6 +10,7 @@ type Configuration struct {
 	ghidraScript          *string
 }
 
+//NewConfiguration returns a new ghidra configuration
 func NewConfiguration(ghidraHeadless, ghidraProjectLocation, ghidraProject, ghidraScript string) (*Configuration, error) {
 	config := &Configuration{ghidraHeadless: &ghidraHeadless, ghidraProjectLocation: &ghidraProjectLocation,
 		ghidraProject: &ghidraProject, ghidraScript: &ghidraScript}
