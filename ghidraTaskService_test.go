@@ -174,14 +174,14 @@ func ExampleGetStatusByTaskID() {
 	ghidraScriptService := NewGhidraTaskService(config)
 
 	//create a new task, this task can be any struct that implements the public interface 'GhidraTask'
-	taskId := "testID"
+	taskID := "testID"
 	script := "testScript"
-	newTask := NewGhidraScriptTask(&taskId, &script)
+	newTask := NewGhidraScriptTask(&taskID, &script)
 
 	//add example to queue
 	ghidraScriptService.AddNewTaskToQueue(newTask)
 
 	//check status
-	status := ghidraScriptService.GetStatusByTaskID(&taskId)
+	status := ghidraScriptService.GetStatusByTaskID(&taskID)
 	fmt.Println(string(*status))
 }

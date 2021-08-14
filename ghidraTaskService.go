@@ -104,8 +104,10 @@ func (ghidraTaskService *GhidraTaskService) GetAllStatus() map[string]*GhidraTas
 	return ghidraTaskService.statusMap
 }
 
-func (ghidraTaskService *GhidraTaskService) IsQueueEmpty() bool {
-	return ghidraTaskService.queue.Front() == nil
+//IsQueueEmpty returns a bool indicating whether the queue is empty
+func (ghidraTaskService *GhidraTaskService) IsQueueEmpty() (isQueueEmpty bool) {
+	isQueueEmpty = ghidraTaskService.queue.Front() == nil
+	return isQueueEmpty
 }
 
 func (ghidraTaskService *GhidraTaskService) getNextTaskAndRemoveFromQueue() *GhidraTask {
