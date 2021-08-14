@@ -2,7 +2,6 @@ package ghidraScriptRunner
 
 import (
 	"container/list"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -129,59 +128,4 @@ func TestGetNextTaskAndRemoveFromQueue(t *testing.T) {
 	if *(*task).GetTaskID() != taskID {
 		t.FailNow()
 	}
-}
-
-func ExampleAddToQueue() {
-	//create new confi
-	config, err := NewConfiguration("ghidraHeadless", "ghidraProjectLocation", "ghidraProject", "ghidraScript")
-	if err == nil {
-		fmt.Println("Oh no! We have an invalid config!")
-	}
-	//create new task service
-	ghidraScriptService := NewGhidraTaskService(config)
-
-	taskID := "testID"
-	script := "testScript"
-	//add example to queue
-	ghidraScriptService.AddToQueue(&taskID, &script)
-}
-
-func ExampleAddNewTaskToQueue() {
-	//create new confi
-	config, err := NewConfiguration("ghidraHeadless", "ghidraProjectLocation", "ghidraProject", "ghidraScript")
-	if err == nil {
-		fmt.Println("Oh no! We have an invalid config!")
-	}
-	//create new task service
-	ghidraScriptService := NewGhidraTaskService(config)
-
-	//create a new task, this task can be any struct that implements the public interface 'GhidraTask'
-	taskID := "testID"
-	script := "testScript"
-	newTask := NewGhidraScriptTask(&taskID, &script)
-
-	//add example to queue
-	ghidraScriptService.AddNewTaskToQueue(newTask)
-}
-
-func ExampleGetStatusByTaskID() {
-	//create new confi
-	config, err := NewConfiguration("ghidraHeadless", "ghidraProjectLocation", "ghidraProject", "ghidraScript")
-	if err == nil {
-		fmt.Println("Oh no! We have an invalid config!")
-	}
-	//create new task service
-	ghidraScriptService := NewGhidraTaskService(config)
-
-	//create a new task, this task can be any struct that implements the public interface 'GhidraTask'
-	taskID := "testID"
-	script := "testScript"
-	newTask := NewGhidraScriptTask(&taskID, &script)
-
-	//add example to queue
-	ghidraScriptService.AddNewTaskToQueue(newTask)
-
-	//check status
-	status := ghidraScriptService.GetStatusByTaskID(&taskID)
-	fmt.Println(string(*status))
 }
