@@ -1,11 +1,11 @@
 package ghidraScriptRunner
 
-//QueueStatus the status of a task in the queue
-type QueueStatus string
+//GhidraTaskStatus the status of a task in the queue
+type GhidraTaskStatus string
 
 const (
-	beginningStatus QueueStatus = "Waiting on Ghidra"
-	errorStatus     QueueStatus = "An error has occurred"
-	runningStatus   QueueStatus = "Running"
-	completeStatus  QueueStatus = "Task Complete"
+	waitingStatus  GhidraTaskStatus = "Waiting on Ghidra"
+	errorStatus    GhidraTaskStatus = "An error has occurred"
+	runningStatus  GhidraTaskStatus = "Running"
+	completeStatus GhidraTaskStatus = "Task Complete"
 )

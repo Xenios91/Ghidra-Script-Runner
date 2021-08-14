@@ -5,11 +5,11 @@ import "os/exec"
 type queueScriptTask struct {
 	fileName *string
 	script   *string
-	status   QueueStatus
+	status   GhidraTaskStatus
 }
 
-func newGhidraQueueItem(fileName, script *string) *queueScriptTask {
-	return &queueScriptTask{fileName, script, beginningStatus}
+func NewGhidraScriptTask(fileName, script *string) *queueScriptTask {
+	return &queueScriptTask{fileName, script, waitingStatus}
 }
 
 func (queuedItem *queueScriptTask) RunTask(ghidraConfig *Configuration) (successful bool) {
@@ -22,10 +22,10 @@ func (queuedItem *queueScriptTask) GetTaskID() *string {
 	return queuedItem.fileName
 }
 
-func (queuedItem *queueScriptTask) GetTaskStatus() *QueueStatus {
+func (queuedItem *queueScriptTask) GetTaskStatus() *GhidraTaskStatus {
 	return &queuedItem.status
 }
 
-func (queuedItem *queueScriptTask) SetTaskStatus(queueStatus *QueueStatus) {
+func (queuedItem *queueScriptTask) SetTaskStatus(queueStatus *GhidraTaskStatus) {
 	queuedItem.status = *queueStatus
 }

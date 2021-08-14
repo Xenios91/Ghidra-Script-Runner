@@ -1,9 +1,9 @@
 package ghidraScriptRunner
 
-//GhidraQueueTask a single task for the queue
-type GhidraQueueTask interface {
+//GhidraTask a single task for the queue
+type GhidraTask interface {
 	RunTask(config *Configuration) bool
 	GetTaskID() *string
-	GetTaskStatus() *QueueStatus
-	SetTaskStatus(status *QueueStatus)
+	GetTaskStatus() *GhidraTaskStatus
+	SetTaskStatus(status *GhidraTaskStatus)
 }
