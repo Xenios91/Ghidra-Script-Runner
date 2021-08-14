@@ -2,13 +2,13 @@ package ghidraScriptRunner
 
 import "testing"
 
-func testValidConfig(t *testing.T) {
-	if _, err := NewConfiguration("headless", "projectLocation", "project", "script"); err != nil {
+func TestValidConfig(t *testing.T) {
+	if _, got := NewConfiguration("headless", "projectLocation", "project", "script"); got != nil {
 		t.FailNow()
 	}
 
 	var nilString string
-	if _, err := NewConfiguration(nilString, "", "", ""); err == nil {
+	if _, got := NewConfiguration(nilString, "", "", ""); got == nil {
 		t.FailNow()
 	}
 }

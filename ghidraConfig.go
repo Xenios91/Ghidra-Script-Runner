@@ -19,6 +19,6 @@ func NewConfiguration(ghidraHeadless, ghidraProjectLocation, ghidraProject, ghid
 }
 
 func (config *Configuration) checkConfig() (validConfig bool) {
-	validConfig = config.ghidraHeadless != nil && config.ghidraProjectLocation != nil && config.ghidraProject != nil && config.ghidraScript != nil
+	validConfig = len(*config.ghidraHeadless) > 0 && len(*config.ghidraProjectLocation) > 0 && len(*config.ghidraProject) > 0 && len(*config.ghidraScript) > 0
 	return validConfig
 }
