@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+var lock = sync.RWMutex{}
+
 //GhidraTaskService the service utilized to run ghidra scripts and manage the task queue.
 type GhidraTaskService struct {
 	statusMap    map[string]*GhidraTaskStatus
@@ -47,6 +49,9 @@ func NewGhidraTaskService(config *Configuration) *GhidraTaskService {
 
 //AddNewTaskToQueue takes a GhidraQueueTask and adds it to the task queue
 func (ghidraTaskService *GhidraTaskService) AddNewTaskToQueue(task GhidraTask) {
+	lock.Lock()
+	defer lock.Unlock()
+
 	ghidraTaskService.statusMap[*task.GetTaskID()] = task.GetTaskStatus()
 	ghidraTaskService.queue.PushBack(task)
 	ghidraTaskService.syncCondi.Signal()
@@ -54,6 +59,9 @@ func (ghidraTaskService *GhidraTaskService) AddNewTaskToQueue(task GhidraTask) {
 
 //AddToQueue adds a new task to the queue
 func (ghidraTaskService *GhidraTaskService) AddToQueue(taskID, script *string) {
+	lock.Lock()
+	defer lock.Unlock()
+
 	task := NewGhidraScriptTask(taskID, script)
 	ghidraTaskService.statusMap[*task.GetTaskID()] = task.GetTaskStatus()
 	ghidraTaskService.queue.PushBack(task)
@@ -61,6 +69,9 @@ func (ghidraTaskService *GhidraTaskService) AddToQueue(taskID, script *string) {
 }
 
 func (ghidraTaskService *GhidraTaskService) findElementByTaskID(taskID *string) *list.Element {
+	lock.Lock()
+	defer lock.Unlock()
+
 	linkedListElement := ghidraTaskService.queue.Front()
 	for {
 		if linkedListElement != nil {
@@ -106,6 +117,9 @@ func (ghidraTaskService *GhidraTaskService) GetAllStatus() map[string]*GhidraTas
 
 //IsQueueEmpty returns a bool indicating whether the queue is empty
 func (ghidraTaskService *GhidraTaskService) IsQueueEmpty() bool {
+	lock.Lock()
+	defer lock.Unlock()
+
 	return ghidraTaskService.queue.Front() == nil
 }
 
