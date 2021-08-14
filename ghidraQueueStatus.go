@@ -5,7 +5,7 @@ type QueueStatus string
 
 const (
 	beginningStatus QueueStatus = "Waiting on Ghidra"
-	errorStatus     QueueStatus = "An error has occured"
+	errorStatus     QueueStatus = "An error has occurred"
 	runningStatus   QueueStatus = "Running"
-	completeStatus  QueueStatus = "Script Complete"
+	completeStatus  QueueStatus = "Task Complete"
 )

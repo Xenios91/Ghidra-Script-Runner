@@ -22,13 +22,13 @@ func (ghidraScriptService *GhidraScriptService) waitForQueuedItems() {
 			syncCondi.Wait()
 			linkedListElement = ghidraScriptService.queue.Front()
 		} else {
-			task := linkedListElement.Value.(*queueScriptTask)
-			ghidraScriptService.UpdateTaskStatus(task.fileName, runningStatus)
-			success := task.runTask(ghidraScriptService.ghidraConfig)
+			task := linkedListElement.Value.(GhidraQueueTask)
+			ghidraScriptService.UpdateTaskStatus(task.GetTaskID(), runningStatus)
+			success := (task).RunTask(ghidraScriptService.ghidraConfig)
 			if success {
-				ghidraScriptService.UpdateTaskStatus(task.fileName, completeStatus)
+				ghidraScriptService.UpdateTaskStatus(task.GetTaskID(), completeStatus)
 			} else {
-				ghidraScriptService.UpdateTaskStatus(task.fileName, errorStatus)
+				ghidraScriptService.UpdateTaskStatus(task.GetTaskID(), errorStatus)
 			}
 		}
 		linkedListElement = linkedListElement.Next()
@@ -48,18 +48,18 @@ func NewGhidraScriptService(config *Configuration) *GhidraScriptService {
 }
 
 //AddToQueue adds a new task to the queue
-func (ghidraScriptService *GhidraScriptService) AddToQueue(binaryName, script *string) {
-	queueValue := newGhidraQueueItem(binaryName, script)
+func (ghidraScriptService *GhidraScriptService) AddToQueue(taskID, script *string) {
+	queueValue := newGhidraQueueItem(taskID, script)
 	ghidraScriptService.queue.PushBack(queueValue)
 	ghidraScriptService.syncCondi.Signal()
 }
 
-func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) *list.Element {
+func (ghidraScriptService *GhidraScriptService) findElement(taskID *string) *list.Element {
 	linkedListElement := ghidraScriptService.queue.Front()
 	for {
 		if linkedListElement != nil {
-			task := linkedListElement.Value.(*queueScriptTask)
-			if task.fileName == binaryName {
+			task := linkedListElement.Value.(GhidraQueueTask)
+			if task.GetTaskID() == taskID {
 				return linkedListElement
 			}
 
@@ -72,26 +72,26 @@ func (ghidraScriptService *GhidraScriptService) findElement(binaryName *string) 
 }
 
 //RemoveFromQueue removes a task from the queue
-func (ghidraScriptService *GhidraScriptService) RemoveFromQueue(binaryName *string) {
-	linkedListElement := ghidraScriptService.findElement(binaryName)
+func (ghidraScriptService *GhidraScriptService) RemoveFromQueue(taskID *string) {
+	linkedListElement := ghidraScriptService.findElement(taskID)
 	if linkedListElement != nil {
 		ghidraScriptService.queue.Remove(linkedListElement)
 	}
 }
 
 //UpdateTaskStatus updates the status of a task currently in the queue.
-func (ghidraScriptService *GhidraScriptService) UpdateTaskStatus(binaryName *string, statusUpdate QueueStatus) {
-	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
-		task := linkedListElement.Value.(*queueScriptTask)
-		task.status = statusUpdate
+func (ghidraScriptService *GhidraScriptService) UpdateTaskStatus(taskID *string, statusUpdate QueueStatus) {
+	if linkedListElement := ghidraScriptService.findElement(taskID); linkedListElement != nil {
+		task := linkedListElement.Value.(GhidraQueueTask)
+		task.SetTaskStatus(&statusUpdate)
 	}
 }
 
 //GetStatus returns the current status of a task currently in the queue.
-func (ghidraScriptService *GhidraScriptService) GetStatus(binaryName *string) *QueueStatus {
-	if linkedListElement := ghidraScriptService.findElement(binaryName); linkedListElement != nil {
-		status := linkedListElement.Value.(*queueScriptTask).status
-		return &status
+func (ghidraScriptService *GhidraScriptService) GetStatus(taskID *string) *QueueStatus {
+	if linkedListElement := ghidraScriptService.findElement(taskID); linkedListElement != nil {
+		status := linkedListElement.Value.(GhidraQueueTask).GetTaskStatus()
+		return status
 	}
 	return nil
 }
@@ -103,12 +103,16 @@ func (ghidraScriptService *GhidraScriptService) GetAllStatus() map[string]*Queue
 
 	for {
 		if linkedListElement != nil {
-			task := linkedListElement.Value.(*queueScriptTask)
-			statusMap[*task.fileName] = &task.status
+			task := linkedListElement.Value.(GhidraQueueTask)
+			statusMap[*task.GetTaskID()] = task.GetTaskStatus()
 			linkedListElement = linkedListElement.Next()
 		} else {
 			break
 		}
 	}
 	return statusMap
+}
+
+func (ghidraScriptService *GhidraScriptService) isQueueEmpty() bool {
+	return ghidraScriptService.queue.Front() == nil
 }
