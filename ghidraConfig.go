@@ -4,15 +4,15 @@ import "errors"
 
 //Configuration The ghidra configuration to be utilized for running scripts
 type Configuration struct {
-	ghidraHeadless        *string
-	ghidraProjectLocation *string
-	ghidraProject         *string
+	ghidraHeadless        string
+	ghidraProjectLocation string
+	ghidraProject         string
+	shouldOverWrite       bool
 }
 
 //NewConfiguration returns a new ghidra configuration
-func NewConfiguration(ghidraHeadless, ghidraProjectLocation, ghidraProject string) (*Configuration, error) {
-	config := &Configuration{ghidraHeadless: &ghidraHeadless, ghidraProjectLocation: &ghidraProjectLocation,
-		ghidraProject: &ghidraProject}
+func NewConfiguration(ghidraHeadless, ghidraProjectLocation, ghidraProject string, shouldOverWrite bool) (*Configuration, error) {
+	config := &Configuration{ghidraHeadless, ghidraProjectLocation, ghidraProject, shouldOverWrite}
 	if config.checkConfig() {
 		return config, nil
 	}
@@ -20,6 +20,6 @@ func NewConfiguration(ghidraHeadless, ghidraProjectLocation, ghidraProject strin
 }
 
 func (config *Configuration) checkConfig() (validConfig bool) {
-	validConfig = len(*config.ghidraHeadless) > 0 && len(*config.ghidraProjectLocation) > 0 && len(*config.ghidraProject) > 0
+	validConfig = len(config.ghidraHeadless) > 0 && len(config.ghidraProjectLocation) > 0 && len(config.ghidraProject) > 0
 	return validConfig
 }

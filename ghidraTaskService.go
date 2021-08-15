@@ -24,12 +24,12 @@ func (ghidraTaskService *GhidraTaskService) waitForQueuedItems() {
 			syncCondi.Wait()
 		} else {
 			task := ghidraTaskService.getNextTaskAndRemoveFromQueue()
-			ghidraTaskService.UpdateTaskStatusByTaskID((*task).GetTaskID(), runningStatus)
-			success := (*task).RunTask(ghidraTaskService.ghidraConfig)
-			if success {
-				ghidraTaskService.UpdateTaskStatusByTaskID((*task).GetTaskID(), completeStatus)
+			ghidraTaskService.UpdateTaskStatusByTaskID((*task).ID(), runningStatus)
+			err := (*task).Run(ghidraTaskService.ghidraConfig)
+			if err != nil {
+				ghidraTaskService.UpdateTaskStatusByTaskID((*task).ID(), errorStatus)
 			} else {
-				ghidraTaskService.UpdateTaskStatusByTaskID((*task).GetTaskID(), errorStatus)
+				ghidraTaskService.UpdateTaskStatusByTaskID((*task).ID(), completeStatus)
 			}
 		}
 		syncCondi.L.Unlock()
@@ -49,23 +49,18 @@ func (ghidraTaskService *GhidraTaskService) AddNewTaskToQueue(task GhidraTask) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	ghidraTaskService.statusMap[*task.GetTaskID()] = task.GetTaskStatus()
+	ghidraTaskService.statusMap[task.ID()] = task.Status()
 	ghidraTaskService.queue.PushBack(task)
 	ghidraTaskService.syncCondi.Signal()
 }
 
 //AddToQueue adds a new task to the queue
-func (ghidraTaskService *GhidraTaskService) AddToQueue(taskID, script *string) {
-	lock.Lock()
-	defer lock.Unlock()
-
+func (ghidraTaskService *GhidraTaskService) AddToQueue(taskID, script string) {
 	task := NewGhidraScriptTask(taskID, script)
-	ghidraTaskService.statusMap[*task.GetTaskID()] = task.GetTaskStatus()
-	ghidraTaskService.queue.PushBack(task)
-	ghidraTaskService.syncCondi.Signal()
+	ghidraTaskService.AddNewTaskToQueue(task)
 }
 
-func (ghidraTaskService *GhidraTaskService) findElementByTaskID(taskID *string) *list.Element {
+func (ghidraTaskService *GhidraTaskService) findElementByTaskID(taskID string) *list.Element {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -73,7 +68,7 @@ func (ghidraTaskService *GhidraTaskService) findElementByTaskID(taskID *string) 
 	for {
 		if linkedListElement != nil {
 			task := linkedListElement.Value.(GhidraTask)
-			if task.GetTaskID() == taskID {
+			if task.ID() == taskID {
 				return linkedListElement
 			}
 
@@ -86,19 +81,19 @@ func (ghidraTaskService *GhidraTaskService) findElementByTaskID(taskID *string) 
 }
 
 //RemoveFromQueueByTaskID removes a task from the queue
-func (ghidraTaskService *GhidraTaskService) RemoveFromQueueByTaskID(taskID *string) {
+func (ghidraTaskService *GhidraTaskService) RemoveFromQueueByTaskID(taskID string) {
 	linkedListElement := ghidraTaskService.findElementByTaskID(taskID)
 	if linkedListElement != nil {
 		ghidraTaskService.queue.Remove(linkedListElement)
-		delete(ghidraTaskService.statusMap, *taskID)
+		delete(ghidraTaskService.statusMap, taskID)
 	}
 }
 
 //UpdateTaskStatusByTaskID updates the status of a task currently in the queue.
-func (ghidraTaskService *GhidraTaskService) UpdateTaskStatusByTaskID(taskID *string, statusUpdate GhidraTaskStatus) {
+func (ghidraTaskService *GhidraTaskService) UpdateTaskStatusByTaskID(taskID string, statusUpdate GhidraTaskStatus) {
 	if linkedListElement := ghidraTaskService.findElementByTaskID(taskID); linkedListElement != nil {
 		task := linkedListElement.Value.(GhidraTask)
-		task.SetTaskStatus(&statusUpdate)
+		task.SetStatus(&statusUpdate)
 	}
 }
 
