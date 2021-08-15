@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var config, _ = NewConfiguration("test", "test", "test", "test")
+var config, _ = NewConfiguration("test", "test", "test")
 
 func TestAddToQueue(t *testing.T) {
 	ghidraScriptService := NewGhidraTaskService(config)

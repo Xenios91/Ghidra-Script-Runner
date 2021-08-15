@@ -38,9 +38,6 @@ func (ghidraTaskService *GhidraTaskService) waitForQueuedItems() {
 
 //NewGhidraTaskService used to create a new ghidra task service. Required to start polling task
 func NewGhidraTaskService(config *Configuration) *GhidraTaskService {
-	if config == nil {
-		panic("Ghidra Config was nil!")
-	}
 	mutex := sync.Mutex{}
 	newGhidraTaskService := &GhidraTaskService{make(map[string]*GhidraTaskStatus), list.New(), sync.NewCond(&mutex), config}
 	go newGhidraTaskService.waitForQueuedItems()
