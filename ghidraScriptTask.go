@@ -29,17 +29,17 @@ func (ghidraScriptTask *GhidraScriptTask) Run(ghidraConfig *Configuration) error
 	return err
 }
 
-//GetTaskID returns the taskID associated with this GhidraScriptTask struct
+//GetTaskID returns the ID associated with this GhidraScriptTask struct
 func (ghidraScriptTask *GhidraScriptTask) ID() string {
 	return ghidraScriptTask.fileName
 }
 
-//GetTaskStatus returns the GhidraTaskStatus associated with this GhidraScriptTask struct
+//GetTaskStatus returns the Status associated with this GhidraScriptTask struct
 func (ghidraScriptTask *GhidraScriptTask) Status() *GhidraTaskStatus {
 	return &ghidraScriptTask.status
 }
 
-//SetTaskStatus sets the GhidraTaskStatus of this GhidraScriptTask to the argument passed to this method
+//SetTaskStatus sets the Status of this GhidraScriptTask to the argument passed to this method
 func (ghidraScriptTask *GhidraScriptTask) SetStatus(queueStatus *GhidraTaskStatus) {
 	ghidraScriptTask.status = *queueStatus
 }
