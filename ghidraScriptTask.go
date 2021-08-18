@@ -16,7 +16,7 @@ func NewGhidraScriptTask(fileName, script string) *GhidraScriptTask {
 	return &GhidraScriptTask{fileName, waitingStatus, script}
 }
 
-//RunTask run the task assigned to this GhidraScriptTask struct
+//Run run the task assigned to this GhidraScriptTask struct
 func (ghidraScriptTask *GhidraScriptTask) Run(ghidraConfig *Configuration) error {
 	var err error
 	if ghidraConfig.shouldOverWrite {
@@ -29,17 +29,17 @@ func (ghidraScriptTask *GhidraScriptTask) Run(ghidraConfig *Configuration) error
 	return err
 }
 
-//GetTaskID returns the ID associated with this GhidraScriptTask struct
+//ID returns the ID associated with this GhidraScriptTask struct
 func (ghidraScriptTask *GhidraScriptTask) ID() string {
 	return ghidraScriptTask.fileName
 }
 
-//GetTaskStatus returns the Status associated with this GhidraScriptTask struct
+//Status returns the Status associated with this GhidraScriptTask struct
 func (ghidraScriptTask *GhidraScriptTask) Status() *GhidraTaskStatus {
 	return &ghidraScriptTask.status
 }
 
-//SetTaskStatus sets the Status of this GhidraScriptTask to the argument passed to this method
+//SetStatus sets the Status of this GhidraScriptTask to the argument passed to this method
 func (ghidraScriptTask *GhidraScriptTask) SetStatus(queueStatus *GhidraTaskStatus) {
 	ghidraScriptTask.status = *queueStatus
 }
